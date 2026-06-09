@@ -61,3 +61,32 @@ def history():
     db.close()
 
     return results
+
+
+@app.get("/health")
+def health():
+
+    db = SessionLocal()
+
+    latest_record = (
+        db.query(Telemetry)
+        .order_by(Telemetry.id.desc())
+        .first()
+    )
+
+    db.close()
+
+    if latest_record is None:
+        return {
+            "status": "No data available"
+        }
+
+    if latest_record.equipment_health < 95:
+        status = "warning"
+    else:
+        status = "healthy"
+
+    return {
+        "status": status,
+        "equipment_health": latest_record.equipment_health
+    }
