@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from sqlalchemy.orm import Session
 from simulator.telemetry_generator import generate_sensor_data
 from backend.app.models import Base, Telemetry
 from backend.app.database import engine, SessionLocal
@@ -35,3 +36,28 @@ def telemetry():
     db.close()
 
     return data
+
+@app.get("/history")
+def history():
+
+    db = SessionLocal()
+
+    records = db.query(Telemetry).all()
+
+    results = []
+
+    for record in records:
+        results.append({
+            "id": record.id,
+            "timestamp": record.timestamp,
+            "temperature": record.temperature,
+            "pressure": record.pressure,
+            "frequency": record.frequency,
+            "active_power": record.active_power,
+            "reactive_power": record.reactive_power,
+            "equipment_health": record.equipment_health
+        })
+
+    db.close()
+
+    return results
