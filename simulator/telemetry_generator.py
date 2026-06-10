@@ -1,12 +1,12 @@
 import random
 from datetime import datetime
 
-temperature = 75
-pressure = 110
+temperature = 85
+pressure = 125
 frequency = 60
 active_power = 500
 reactive_power = 150
-equipment_health = 100
+equipment_health = 90
 
 
 def generate_sensor_data():

@@ -90,3 +90,79 @@ def health():
         "status": status,
         "equipment_health": latest_record.equipment_health
     }
+@app.get("/alerts")
+def alerts():
+
+    db = SessionLocal()
+
+    latest_record = (
+        db.query(Telemetry)
+        .order_by(Telemetry.id.desc())
+        .first()
+    )
+
+    db.close()
+
+    if latest_record is None:
+        return {
+            "alert": "No telemetry available"
+        }
+
+    alerts = []
+
+    if latest_record.temperature > 80:
+        alerts.append("High temperature detected")
+
+    if latest_record.pressure > 120:
+        alerts.append("High pressure detected")
+
+    if latest_record.equipment_health < 95:
+        alerts.append("Equipment health warning")
+
+    if len(alerts) == 0:
+        alerts.append("No active alerts")
+
+    return {
+        "alerts": alerts
+    }
+@app.get("/dashboard")
+def dashboard():
+
+    db = SessionLocal()
+
+    latest = db.query(Telemetry).order_by(Telemetry.id.desc()).first()
+
+    if latest is None:
+        db.close()
+        return {"message": "No telemetry data available"}
+
+    alerts = []
+
+    if latest.temperature > 80:
+        alerts.append("High temperature detected")
+
+    if latest.pressure > 120:
+        alerts.append("High pressure detected")
+
+    if latest.equipment_health < 90:
+        alerts.append("Equipment health warning")
+
+    status = "healthy"
+
+    if latest.equipment_health < 90:
+        status = "warning"
+
+    result = {
+        "temperature": latest.temperature,
+        "pressure": latest.pressure,
+        "frequency": latest.frequency,
+        "active_power": latest.active_power,
+        "reactive_power": latest.reactive_power,
+        "equipment_health": latest.equipment_health,
+        "status": status,
+        "alerts": alerts
+    }
+
+    db.close()
+
+    return result
