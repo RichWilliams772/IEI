@@ -1,0 +1,339 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+  background: #0b1220;
+  color: #f9fafb;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+}
+
+h1,
+h2,
+h3,
+p,
+span,
+div,
+strong {
+  color: inherit;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.2), transparent 30%),
+    radial-gradient(circle at top right, rgba(16, 185, 129, 0.12), transparent 35%),
+    linear-gradient(135deg, #020617 0%, #0b1220 45%, #111827 100%);
+}
+
+.dashboard {
+  min-height: 100vh;
+  padding: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.sidebar {
+  display: none;
+}
+
+.topbar {
+  display: none;
+}
+
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 42px;
+}
+
+.logo-title {
+  font-size: 52px;
+  font-weight: 900;
+  letter-spacing: 8px;
+  margin: 0;
+  color: #3b82f6;
+  text-shadow: 0 0 24px rgba(59, 130, 246, 0.7);
+}
+
+.platform-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 8px 0 0;
+  color: #ffffff;
+}
+
+.subtitle {
+  color: #94a3b8;
+  margin-top: 10px;
+  font-size: 14px;
+  letter-spacing: 1.5px;
+}
+
+.live-indicator {
+  color: #10b981;
+  font-weight: 800;
+  margin-top: 18px;
+  letter-spacing: 3px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+}
+
+.card,
+.chart-section,
+.alert-panel,
+.ai-panel,
+.energy-flow-panel,
+.health-gauge-panel {
+  background: rgba(17, 24, 39, 0.82);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  box-shadow:
+    0 0 30px rgba(59, 130, 246, 0.08),
+    0 18px 45px rgba(0, 0, 0, 0.45);
+}
+
+.card {
+  border-radius: 24px;
+  padding: 26px;
+}
+
+.card-label {
+  color: #94a3b8;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.card-value {
+  font-size: 32px;
+  font-weight: 900;
+}
+
+.card-trend {
+  margin: 6px 0 0;
+  color: #e5e7eb;
+}
+
+.blue {
+  color: #3b82f6;
+}
+
+.green {
+  color: #10b981;
+}
+
+.amber {
+  color: #f59e0b;
+}
+
+.status-panel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.healthy {
+  background: rgba(16, 185, 129, 0.16);
+  color: #10b981;
+}
+
+.status-badge.warning {
+  background: rgba(245, 158, 11, 0.16);
+  color: #f59e0b;
+}
+
+.status-badge.critical {
+  background: rgba(239, 68, 68, 0.16);
+  color: #ef4444;
+}
+
+.main-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 26px;
+  margin-top: 30px;
+}
+
+.chart-section,
+.alert-panel,
+.ai-panel,
+.energy-flow-panel,
+.health-gauge-panel {
+  border-radius: 24px;
+  padding: 26px;
+}
+
+.section-header h2,
+.alert-panel h2,
+.ai-panel h2,
+.energy-flow-panel h2,
+.health-gauge-panel h2 {
+  color: #ffffff;
+  margin-top: 0;
+  text-align: center;
+}
+
+.time-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 12px;
+  color: #94a3b8;
+}
+
+.alert-item {
+  background: rgba(245, 158, 11, 0.13);
+  border-left: 4px solid #f59e0b;
+  padding: 16px;
+  border-radius: 14px;
+  margin-bottom: 14px;
+  color: #fef3c7;
+  font-weight: 700;
+}
+
+.ai-panel {
+  margin-top: 24px;
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+.ai-text {
+  color: #d1fae5;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.recommendation {
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(16, 185, 129, 0.12);
+  color: #a7f3d0;
+  font-weight: 700;
+  text-align: center;
+}
+
+.bottom-grid {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 26px;
+}
+
+.energy-flow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.flow-node {
+  flex: 1;
+  padding: 16px;
+  text-align: center;
+  border-radius: 16px;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.flow-arrow {
+  color: #10b981;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.gauge {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  margin: 20px auto;
+  background: conic-gradient(
+    #10b981 0deg 324deg,
+    rgba(148, 163, 184, 0.18) 324deg 360deg
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gauge-inner {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: #0b1220;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.gauge-value {
+  font-size: 30px;
+  font-weight: 900;
+  color: #10b981;
+}
+
+.gauge-label {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.loading {
+  color: #ffffff;
+  text-align: center;
+  margin-top: 80px;
+}
+
+@media (max-width: 1100px) {
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .energy-flow {
+    flex-direction: column;
+  }
+
+  .flow-arrow {
+    transform: rotate(90deg);
+  }
+}
+
+@media (max-width: 700px) {
+  .dashboard {
+    padding: 20px;
+  }
+
+  .cards {
+    grid-template-columns: 1fr;
+  }
+
+  .logo-title {
+    font-size: 38px;
+  }
+
+  .platform-title {
+    font-size: 20px;
+  }
+}

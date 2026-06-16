@@ -3,11 +3,21 @@ from sqlalchemy.orm import Session
 from simulator.telemetry_generator import generate_sensor_data
 from backend.app.models import Base, Telemetry
 from backend.app.database import engine, SessionLocal
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="Intelligent Energy Monitoring Platform"
 )
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 Base.metadata.create_all(bind=engine)
 
 @app.get("/")
