@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCADA Simulator - Device Manager</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #34495e;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .device-list {
+            margin-top: 30px;
+        }
+        .device-card {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: #fafafa;
+        }
+        .device-header {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .device-details {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        .protocol-specific {
+            background-color: #e8f4fc;
+            border-left: 4px solid #3498db;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        .error {
+            color: #e74c3c;
+            background-color: #fdf2f2;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .tag-section {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px dashed #ccc;
+        }
+        .tag-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .tag-actions {
+            margin-left: 10px;
+        }
+        .edit-form {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: none;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SCADA Simulator Device Manager</h1>
+        
+        <div id="error-message"></div>
+        
+        <form id="device-form">
+            <div class="form-group">
+                <label for="name">Device Name:</label>
+                <input type="text" id="name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="protocol">Protocol:</label>
+                <select id="protocol" required>
+                    <option value="">Select Protocol</option>
+                    <option value="modbus_tcp">Modbus TCP/IP</option>
+                    <option value="dnp3">DNP3</option>
+                    <option value="iccp">ICCP</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="ip">IP Address:</label>
+                <input type="text" id="ip" required>
+            </div>
+
+            <div class="form-group">
+                <label for="port">Port:</label>
+                <input type="number" id="port" value="502" min="1" max="65535">
+            </div>
+
+            <div id="protocol-specific-fields"></div>
+
+            <div class="form-group">
+                <label for="description">Description:</label>
+                <input type="text" id="description">
+            </div>
+
+            <button type="submit">Add Device</button>
+            <button type="button" id="refresh-btn">Refresh Devices</button>
+        </form>
+    </div>
+
+    <div class="container device-list">
+        <h2>Managed Devices</h2>
+        <div id="devices-container"></div>
+    </div>
+
+    <script>
+        const protocolSpecificFields = {
+            'modbus_tcp': [
+                { id: 'registers', label: 'Max Registers', type: 'number', default: '125' },
+                { id: 'response_delay', label: 'Response Delay (ms)', type: 'number', default: '10' }
+            ],
+            'dnp3': [
+                { id: 'max_objects', label: 'Max Objects Per Station', type: 'number', default: '50' },
+                { id: 'timeout_seconds', label: 'Timeout (seconds)', type: 'number', default: '5' }
+            ],
+            'iccp': [
+                { id: 'max_events_buffer', label: 'Max Events Buffer', type: 'number', default: '100' },
+                { id: 'routing_mode', label: 'Routing Mode', type: 'text', default: 'direct' }
+            ]
+        };
+
+        let devices = [];
+        let editingDeviceId = null;
+
+        function updateProtocolFields() {
+            const protocol = document.getElementById('protocol').value;
+            const container = document.getElementById('protocol-specific-fields');
+            
+            if (!protocol || !protocolSpecificFields[protocol]) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '<h3>Protocol-Specific Parameters</h3>';
+            protocolSpecificFields[protocol].forEach(field => {
+                html += `
+                    <div class="form-group">
+                        <label for="${field.id}">${field.label}:</label>
+                        <input type="${field.type}" id="${field.id}" value="${field.default}">
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function showErrorMessage(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.innerHTML = `<div class="error">${message}</div>`;
+            setTimeout(() => { errorDiv.innerHTML = ''; }, 5000);
+        }
+
+        async function refreshDevices() {
+            try {
+                // This would normally call a backend endpoint
+                devices = [
+                    {
+                        device_id: 1001,
+                        name: "PLC-1",
+                        protocol: "modbus_tcp", 
+                        ip_address: "192.168.1.10",
+                        port: 502,
+                        description: "Main process controller",
+                        registers: 125,
+                        response_delay: 10
+                    },
+                    {
+                        device_id: 1002,
+                        name: "Sensor-2", 
+                        protocol: "dnp3",
+                        ip_address: "192.168.1.20",
+                        port: 20000,
+                        description: "Temperature sensor",
+                        max_objects: 50,
+                        timeout_seconds: 5
+                    }
+                ];
+                displayDevices(devices);
+            } catch (error) {
+                showErrorMessage('Failed to load devices: ' + error.message);
+            }
+        }
+
+        function displayDevices(deviceList) {
+            const container = document.getElementById('devices-container');
+            
+            if (!deviceList || deviceList.length === 0) {
+                container.innerHTML = '<p>No devices registered.</p>';
+                return;
+            }
+
+            let html = '';
+            deviceList.forEach(device => {
+                html += `
+                    <div class="device-card" id="device-${device.device_id}">
+                        <div class="device-header">
+                            ${device.name} (${device.protocol})
+                            <div class="action-buttons">
+                                <button onclick="editDevice(${device.device_id})">Edit</button>
+                                <button onclick="deleteDevice(${device.device_id})">Delete</button>
+                            </div>
+                        </div>
+                        <div class="device-details">
+                            IP: ${device.ip_address}, Port: ${device.port}<br>
+                            ID: ${device.device_id}
+                        </div>
+                        <div class="protocol-specific">
+                            <strong>Protocol Settings:</strong><br>
+                            ${device.protocol === 'modbus_tcp' ? 
+                                `Registers: ${device.registers || 125}, Delay: ${device.response_delay || '10'}ms` :
+                                device.protocol === 'dnp3' ?
+                                    `Objects: ${device.max_objects || 50}, Timeout: ${device.timeout_seconds || 5}s` :
+                                    `Buffer: ${device.max_events_buffer || 100}, Mode: ${device.routing_mode || 'direct'}`
+                            }
+                        </div>
+                        
+                        <div class="tag-section">
+                            <h4>Tags/Addresses</h4>
+                            <div id="tags-${device.device_id}">
+                                <p>No tags defined for this device</p>
+                            </div>
+                            <button onclick="addTagForm(${device.device_id})">Add Tag</button>
+                        </div>
+                        
+                        <div class="edit-form" id="edit-form-${device.device_id}">
+                            <h4>Edit Device</h4>
+                            <form onsubmit="saveEdit(${device.device_id}); return false;">
+                                <div class="form-group">
+                                    <label for="edit-name-${device.device_id}">Device Name:</label>
+                                    <input type="text" id="edit-name-${device.device_id}" value="${device.name}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="edit-ip-${device.device_id}">IP Address:</label>
+                                    <input type="text" id="edit-ip-${device.device_id}" value="${device.ip_address}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="edit-port-${device.device_id}">Port:</label>
+                                    <input type="number" id="edit-port-${device.device_id}" value="${device.port}">
+                                </div>
+                                <button type="submit">Save Changes</button>
+                                <button type="button" onclick="cancelEdit(${device.device_id})">Cancel</button>
+                            </form>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function editDevice(deviceId) {
+            // Hide all other edit forms
+            document.querySelectorAll('.edit-form').forEach(form => {
+                form.style.display = 'none';
+            });
+            
+            // Show the form for this device
+            const form = document.getElementById(`edit-form-${deviceId}`);
+            if (form) {
+                form.style.display = 'block';
+            }
+        }
+
+        function cancelEdit(deviceId) {
+            const form = document.getElementById(`edit-form-${deviceId}`);
+            if (form) {
+                form.style.display = 'none';
+            }
+        }
+
+        function saveEdit(deviceId) {
+            // In a real implementation, this would POST to backend
+            alert(`Device ${deviceId} updated! (In real app: would save changes)`);
+            cancelEdit(deviceId);
+            refreshDevices();
+        }
+
+        function deleteDevice(deviceId) {
+            if (confirm('Are you sure you want to delete this device?')) {
+                // In real app, this would call DELETE API
+                alert(`Device ${deviceId} deleted! (In real app: would remove from DB)`);
+                refreshDevices();
+            }
+        }
+
+        function addTagForm(deviceId) {
+            const tagContainer = document.getElementById(`tags-${deviceId}`);
+            if (!tagContainer) return;
+            
+            let formHtml = `
+                <div class="edit-form" id="tag-form-${deviceId}">
+                    <h4>Add New Tag</h4>
+                    <form onsubmit="saveTag(${deviceId}); return false;">
+                        <div class="form-group">
+                            <label for="tag-name-${deviceId}">Tag Name:</label>
+                            <input type="text" id="tag-name-${deviceId}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tag-address-${deviceId}">Address:</label>
+                            <input type="number" id="tag-address-${deviceId}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tag-type-${deviceId}">Value Type:</label>
+                            <select id="tag-type-${deviceId}">
+                                <option value="int">Integer</option>
+                                <option value="float">Float</option>
+                                <option value="bool">Boolean</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="tag-description-${deviceId}">Description:</label>
+                            <input type="text" id="tag-description-${deviceId}">
+                        </div>
+                        <button type="submit">Add Tag</button>
+                        <button type="button" onclick="cancelTagForm(${deviceId})">Cancel</button>
+                    </form>
+                </div>
+            `;
+            
+            tagContainer.innerHTML = formHtml + tagContainer.innerHTML;
+        }
+
+        function cancelTagForm(deviceId) {
+            const form = document.getElementById(`tag-form-${deviceId}`);
+            if (form) {
+                form.remove();
+            }
+        }
+
+        function saveTag(deviceId) {
+            // In real app, this would POST to backend API
+            const name = document.getElementById(`tag-name-${deviceId}`).value;
+            const address = document.getElementById(`tag-address-${deviceId}`).value;
+            const type = document.getElementById(`tag-type-${deviceId}`).value;
+            const description = document.getElementById(`tag-description-${deviceId}`).value;
+            
+            alert(`Tag "${name}" added to device ${deviceId} at address ${address}! (In real app: would save to DB)`);
+            cancelTagForm(deviceId);
+            refreshDevices();
+        }
+
+        document.getElementById('protocol').addEventListener('change', updateProtocolFields);
+        
+        document.getElementById('device-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const deviceData = {
+                name: formData.get('name'),
+                protocol: formData.get('protocol'),
+                ip_address: formData.get('ip'), 
+                port: parseInt(formData.get('port')),
+                description: formData.get('description')
+            };
+            
+            // Add protocol-specific parameters
+            const protocol = deviceData.protocol;
+            if (protocolSpecificFields[protocol]) {
+                deviceData.params = {};
+                protocolSpecificFields[protocol].forEach(field => {
+                    const value = formData.get(field.id);
+                    if (value) {
+                        if (field.type === 'number') {
+                            deviceData.params[field.id] = parseInt(value);
+                        } else {
+                            deviceData.params[field.id] = value;
+                        }
+                    }
+                });
+            }
+
+            try {
+                // In a real app, this would POST to backend API
+                console.log('Adding device:', deviceData);
+                alert('Device added successfully (simulated)');
+                refreshDevices();
+                this.reset();
+            } catch (error) {
+                showErrorMessage('Failed to add device: ' + error.message);
+            }
+        });
+
+        document.getElementById('refresh-btn').addEventListener('click', refreshDevices);
+
+        // Load devices on page load
+        window.addEventListener('load', refreshDevices);
+    </script>
+</body>
+</html>
