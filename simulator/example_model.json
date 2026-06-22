@@ -1,0 +1,117 @@
+{
+  "components": [
+    {
+      "id": "source-1",
+      "type": "source",
+      "name": "Utility Source",
+      "position": {"x": 100, "y": 100},
+      "voltage_rating": "13.8 kV",
+      "voltage_db": 500,
+      "voltage_upper_limit": 14500,
+      "voltage_lower_limit": 13100,
+      "voltage_default": 13800
+    },
+    {
+      "id": "bus-main",
+      "type": "bus",
+      "name": "Main Bus",
+      "position": {"x": 200, "y": 100},
+      "voltage_rating": "13.8 kV"
+    },
+    {
+      "id": "transformer-t1",
+      "type": "transformer",
+      "name": "Transformer T1",
+      "position": {"x": 300, "y": 100},
+      "primary_voltage": "13.8 kV",
+      "secondary_voltage": "480 V"
+    },
+    {
+      "id": "breaker-main",
+      "type": "breaker",
+      "name": "Breaker BKR-MAIN",
+      "position": {"x": 400, "y": 100},
+      "state": true
+    },
+    {
+      "id": "bus-load",
+      "type": "bus",
+      "name": "Load Bus",
+      "position": {"x": 500, "y": 100},
+      "voltage_rating": "480 V"
+    },
+    {
+      "id": "breaker-load",
+      "type": "breaker",
+      "name": "Breaker BKR-LOAD",
+      "position": {"x": 600, "y": 100},
+      "state": true
+    },
+    {
+      "id": "load-panel",
+      "type": "bus",
+      "name": "Load Panel",
+      "position": {"x": 700, "y": 100},
+      "voltage_rating": "480 V"
+    },
+    {
+      "id": "load-1",
+      "type": "load",
+      "name": "Load 100 kW",
+      "position": {"x": 800, "y": 100},
+      "power_rating": 100,
+      "power_factor": 0.9,
+      "voltage_rating": "480 V"
+    },
+    {
+      "id": "consumer-load-1",
+      "type": "consumer_load",
+      "name": "Consumer Load 200 kW",
+      "position": {"x": 900, "y": 100},
+      "power_rating": 200,
+      "power_factor": 0.85,
+      "voltage_rating": "480 V",
+      "expected_power": 200,
+      "unexpected_draw_multiplier": 1.5,
+      "is_unexpected_draw_active": false
+    },
+    {
+      "id": "async-generator-1",
+      "type": "async_generator",
+      "name": "Async Generator 500 kW",
+      "position": {"x": 1000, "y": 100},
+      "power_rating": 500,
+      "voltage_rating": "480 V",
+      "speed_rpm": 1800,
+      "poles": 4,
+      "excitation_voltage": 200,
+      "reactive_power_support": true,
+      "is_operational": false,
+      "target_power_factor": 0.95,
+      "reactive_power_capability": 200
+    },
+    {
+      "id": "meter-main",
+      "type": "meter",
+      "name": "Main Meter",
+      "position": {"x": 250, "y": 150},
+      "voltage_rating": "13.8 kV",
+      "frequency_db": 0.5,
+      "frequency_upper_limit": 60.5,
+      "frequency_lower_limit": 59.5,
+      "frequency_default": 60.0
+    },
+    {
+      "id": "meter-load",
+      "type": "meter",
+      "name": "Load Meter",
+      "position": {"x": 750, "y": 150},
+      "voltage_rating": "480 V",
+      "frequency_db": 0.5,
+      "frequency_upper_limit": 60.5,
+      "frequency_lower_limit": 59.5,
+      "frequency_default": 60.0
+    }
+  ],
+  "sampling_rate_ms": 16
+}
